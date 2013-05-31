@@ -1,4 +1,4 @@
-from tryton_builder import Module, Model
+from tryton_builder import Module, Model, Field
 
 module = Module('HelloWorld')
 
@@ -8,11 +8,8 @@ bye = Model('Bye', 'hello.Bye')
 module.add_model(hello)
 module.add_model(bye)
 
-#hello.add_field(Char('sdjasdjkahs'))
-#hello.add_field(Char('sdjasdjkahs'))
-#hello.add_field(Char('sdjasdjkahs'))
-#hello.add_field(Char('sdjasdjkahs'))
-#hello.add_field(Char('sdjasdjkahs'))
+hello.add_field(Field('Char', 'Name'))
+hello.add_field(Field('Char', 'Greeting'))
 
 #b.create_views()
 #b.create_module()

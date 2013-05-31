@@ -4,6 +4,16 @@ import shutil
 from string import Template
 from xml_utils import Document, MenuItem
 
+def indent(string, level=1):
+    """Indents a piece of code, adding multiples of 4 spaces"""
+    spaces = ' ' * (level * 4)
+    return "%s%s" % (spaces, string)
+
+def to_pep8_variable(string):
+    """Format a string as a correct pep8 name"""
+    return string.replace(' ', '_').replace('-', '_').lower()
+
+
 class Module(object):
 
     def __init__(self, module_name, version='2.8.0'):
@@ -85,6 +95,7 @@ class Model(object):
         self.class_name = class_name
         self.uri = uri
         self.type = type_
+        self.fields = []
 
     def get_import(self):
         """Return the import line for __init__.py"""
@@ -114,12 +125,14 @@ class ${class}(ModelSQL, ModelView):
     "${module_name}"
     __name__ = "${uri}"
     # FIXME put fields here
+${fields}
 """)
 
         contents = template.substitute({
             'class': self.class_name,
             'module_name': module_name,
             'uri': self.uri,
+            'fields': self._code_for_fields(),
             })
 
         return contents
@@ -129,5 +142,32 @@ class ${class}(ModelSQL, ModelView):
         doc = Document()
         doc.add(MenuItem('%s %s' % (module_name, self.class_name)))
         doc.write_xml("%s/%s.xml" % (module_name, self.class_name.lower()))
+
+    def _code_for_fields(self):
+        """Creates the block for fields"""
+        code = ''
+        for field in self.fields:
+            code += indent(field.get_code()) + '\n'
+        return code
+
+    def add_field(self, field):
+        self.fields.append(field)
+
+
+class Field(object):
+    """Represents a generic field of tryton"""
+
+    def __init__(self, type_, name, *kwargs):
+        """Parametrize a new field"""
+        self.type = type_
+        self.name = name
+
+    def get_code(self):
+        """Returns code for field"""
+        return "%s = fields.%s('%s')" % (
+                to_pep8_variable(self.name),
+                self.type,
+                self.name
+                )
 
 
