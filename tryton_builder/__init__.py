@@ -2,7 +2,15 @@
 import os
 import shutil
 from string import Template
-from xml_utils import Document, MenuItem
+from xml_utils import (
+        CDATAWrapper,
+        Document,
+        Field as XMLField,
+        FormView,
+        MenuItem,
+        Record,
+        TreeView,
+        )
 
 def indent(string, level=1):
     """Indents a piece of code, adding multiples of 4 spaces"""
@@ -140,7 +148,23 @@ ${fields}
     def build_xml(self, module_name):
         """Build xml string for model"""
         doc = Document()
+        #Menu item
         doc.add(MenuItem('%s %s' % (module_name, self.class_name)))
+        #Tree View
+        r = Record('ir.ui.view', '%s_view_tree' % self.class_name.lower())
+        doc.add(r)
+        r.add(XMLField('model', value=self.uri))
+        r.add(XMLField('type', value='tree'))
+
+        container = XMLField('arch', {'type': 'xml'})
+        cdata = CDATAWrapper()
+        container.add(cdata)
+        r.add(container)
+        tree = TreeView(self.class_name)
+        cdata.add(tree)
+        for field in self.fields:
+            tree.add(XMLField(field.var_name()))
+
         doc.write_xml("%s/%s.xml" % (module_name, self.class_name.lower()))
 
     def _code_for_fields(self):
@@ -165,9 +189,11 @@ class Field(object):
     def get_code(self):
         """Returns code for field"""
         return "%s = fields.%s('%s')" % (
-                to_pep8_variable(self.name),
+                self.var_name(),
                 self.type,
                 self.name
                 )
+    def var_name(self):
+        return to_pep8_variable(self.name)
 
 
