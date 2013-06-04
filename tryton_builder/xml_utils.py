@@ -51,6 +51,10 @@ class XMLElement(object):
         if value:
             self.element.text = value
 
+    def add(self, field):
+        """Adds a new field inside the record"""
+        self.element.append(field.element)
+
 
 class Document(object):
     """Represents a data document, importable by tryton"""
@@ -86,7 +90,7 @@ class Record(XMLElement):
 
     def add_field(self, field):
         """Adds a new field inside the record"""
-        self.element.append(field.element)
+        self.add(field)
 
 class MenuItem(XMLElement):
     """Defines a Menu item for tryton"""
@@ -103,11 +107,21 @@ class CDATAWrapper(XMLElement):
     def __init__(self):
         super(CDATAWrapper, self).__init__(CDATA_KEY)
 
-    def add(self, field):
-        """Adds a new field inside the record"""
-        self.element.append(field.element)
+
+class TreeView(XMLElement):
+    def __init__(self, label):
+        attrs = {
+            'string': label,
+        }
+        super(TreeView, self).__init__('tree', attrs)
 
 
+class FormView(XMLElement):
+    def __init__(self, label):
+        attrs = {
+            'string': label,
+        }
+        super(FormView, self).__init__('form', attrs)
 
 
 if __name__ == '__main__':
