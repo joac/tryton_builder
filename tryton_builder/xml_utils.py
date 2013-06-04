@@ -3,6 +3,31 @@
 
 import xml.etree.ElementTree as ET
 
+CDATA_KEY = "__CDATA__" #cdata tag name for sustitution
+
+def monkey_patch():
+    """Monkey Patch ElementTree, to support CDATA"""
+    _serialize_xml = ET._serialize_xml
+
+    def _serialize_xml_cdata(write, elem, encoding, qnames, namespaces):
+        tag = elem.tag
+        text = elem.text
+        if tag == CDATA_KEY:
+            write('<![CDATA[')
+            if text:
+                write(ET._escape_cdata(text, encoding))
+            for e in elem:
+                # we use the standart handler, because is not legal to have nested CDATA
+                _serialize_xml(write, e, encoding, qnames, None)
+            write(']]>')
+        else:
+            _serialize_xml(write, elem, encoding, qnames, namespaces)
+
+    ET._serialize_xml = _serialize_xml_cdata
+    print "ElementTree was Monkey Patched to suport CDATA"
+
+monkey_patch()
+
 def indent(elem, level=0):
     i = "\n" + level*"  "
     if len(elem):
@@ -43,7 +68,7 @@ class Document(object):
     def write_xml(self, file_name):
         indent(self.root)
         with open(file_name, 'w') as fh:
-            self.tree.write(fh, 'utf8')
+            self.tree.write(fh, 'utf-8')
 
 
 class Field(XMLElement):
@@ -74,5 +99,23 @@ class MenuItem(XMLElement):
                 }
         super(MenuItem, self).__init__('menuitem', attrs)
 
+class CDATAWrapper(XMLElement):
+    def __init__(self):
+        super(CDATAWrapper, self).__init__(CDATA_KEY)
 
+    def add(self, field):
+        """Adds a new field inside the record"""
+        self.element.append(field.element)
+
+
+
+
+if __name__ == '__main__':
+    d = Document()
+    w = CDATAWrapper()
+    r = Record('saraza', 'foo.bar')
+    w.add(r)
+    d.add(w)
+    r.add_field(Field('sarasa'))
+    d.write_xml('/tmp/test.xml')
 
