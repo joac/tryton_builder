@@ -7,15 +7,18 @@ from xml_utils import (
         Document,
         Field as XMLField,
         FormView,
+        Label,
         MenuItem,
         Record,
         TreeView,
         )
 
+
 def indent(string, level=1):
     """Indents a piece of code, adding multiples of 4 spaces"""
     spaces = ' ' * (level * 4)
     return "%s%s" % (spaces, string)
+
 
 def to_pep8_variable(string):
     """Format a string as a correct pep8 name"""
@@ -104,6 +107,7 @@ class Model(object):
         self.uri = uri
         self.type = type_
         self.fields = []
+        self.view_ids = []
 
     def get_import(self):
         """Return the import line for __init__.py"""
@@ -148,22 +152,34 @@ ${fields}
     def build_xml(self, module_name):
         """Build xml string for model"""
         doc = Document()
-        #Menu item
-        doc.add(MenuItem('%s %s' % (module_name, self.class_name)))
-        #Tree View
-        r = Record('ir.ui.view', '%s_view_tree' % self.class_name.lower())
-        doc.add(r)
-        r.add(XMLField('model', value=self.uri))
-        r.add(XMLField('type', value='tree'))
+        # Menu item
+        menu = MenuItem('%s %s' % (module_name, self.class_name))
+        doc.add(menu)
+        # Tree View
+        doc.add(self._build_tree_view())
+        # Form view
+        doc.add(self._build_form_view())
+        # Events
+        event_id = "act_%s_form" % self.class_name.lower()
+        event = Record('ir.action.act_window', event_id)
+        event.add(XMLField('name', value=self.class_name))
+        event.add(XMLField('res_model', value=self.uri))
+        doc.add(event)
+        for n, view_id in enumerate(self.view_ids, 1):
+            r_id = "act_%s_form_view%s" % (self.class_name.lower(), n)
+            r = Record('ir.action.act_window.view', r_id)
+            r.add(XMLField('sequence', {'eval': str(10 * n)}))
+            r.add(XMLField('view', {'ref': view_id}))
+            r.add(XMLField('act_window', {'ref': event_id}))
+            doc.add(r)
 
-        container = XMLField('arch', {'type': 'xml'})
-        cdata = CDATAWrapper()
-        container.add(cdata)
-        r.add(container)
-        tree = TreeView(self.class_name)
-        cdata.add(tree)
-        for field in self.fields:
-            tree.add(XMLField(field.var_name()))
+        #Menu wiring
+        menu_id = 'menu_%s_form' % self.class_name.lower()
+        doc.add(MenuItem('', sequence='1', attrs={
+                    'parent': menu.id,
+                    'id': menu_id,
+                    'action':event_id,
+                    }))
 
         doc.write_xml("%s/%s.xml" % (module_name, self.class_name.lower()))
 
@@ -176,6 +192,36 @@ ${fields}
 
     def add_field(self, field):
         self.fields.append(field)
+
+    def _build_form_skel(self, view_type):
+        form_id = '%s_view_%s' % (self.class_name.lower(), view_type)
+        r = Record('ir.ui.view', form_id)
+        r.add(XMLField('model', value=self.uri))
+        r.add(XMLField('type', value=view_type))
+        container = XMLField('arch', {'type': 'xml'})
+        cdata = CDATAWrapper()
+        container.add(cdata)
+        r.add(container)
+        self.view_ids.append(form_id)
+        return r, cdata
+
+    def _build_tree_view(self):
+        """Creates a tree view, returns an xml element"""
+        r, cdata = self._build_form_skel('tree')
+        tree = TreeView(self.class_name)
+        cdata.add(tree)
+        for field in self.fields:
+            tree.add(XMLField(field.var_name()))
+        return r
+
+    def _build_form_view(self):
+        r, cdata = self._build_form_skel('form')
+        form = FormView(self.class_name)
+        cdata.add(form)
+        for field in self.fields:
+            form.add(Label(field.var_name()))
+            form.add(XMLField(field.var_name()))
+        return r
 
 
 class Field(object):

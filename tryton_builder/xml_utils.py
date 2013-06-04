@@ -81,6 +81,11 @@ class Field(XMLElement):
         attrs['name'] = name
         super(Field, self).__init__('field', attrs, value)
 
+class Label(XMLElement):
+    """Represents a Field of tryton"""
+    def __init__(self, name, attrs={}, value=None):
+        attrs['name'] = name
+        super(Label, self).__init__('label', attrs, value)
 
 class Record(XMLElement):
     """Represents a record of a tryton model"""
@@ -94,14 +99,17 @@ class Record(XMLElement):
 
 class MenuItem(XMLElement):
     """Defines a Menu item for tryton"""
-    def __init__(self, name, icon='tryton-list', sequence='10'):
-        attrs = {
+    def __init__(self, name, icon='tryton-list', sequence='10', attrs={}):
+
+        self.id = 'menu_%s' % name.lower().replace(' ', '_')
+        _attrs = {
             'name': name,
-            'id': 'menu_%s' % name.lower().replace(' ', '_'),
+            'id': self.id,
             'sequence': sequence,
             'icon': icon,
                 }
-        super(MenuItem, self).__init__('menuitem', attrs)
+        _attrs.update(attrs)
+        super(MenuItem, self).__init__('menuitem', _attrs)
 
 class CDATAWrapper(XMLElement):
     def __init__(self):
