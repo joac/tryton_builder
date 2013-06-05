@@ -1,6 +1,6 @@
 # ![alt text](https://raw.github.com/joac/tryton_builder/master/data/logo.png "Logo")Tryton Builder
 
-Tryton builder is a *Working Progress* script to scaffold tryton modules:
+Tryton builder is a *Work in Progress* script to scaffold tryton modules:
 
 This is the basic usage:
 
