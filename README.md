@@ -1,3 +1,5 @@
+![alt text](https://raw.github.com/joac/fugue/master/data/logo.png "Logo")
+
 # Tryton Builder
 
 Tryton builder is a *Working Progress* script to scaffold tryton modules:
