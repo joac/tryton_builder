@@ -72,9 +72,13 @@ class Module(object):
     def _obtain_registers(self):
         regs = '\n\ndef register():\n'
         pattern = "    Pool.register(%s, module='%s', type_='%s')\n"
+        class_names = []
+
         for model in self.models:
             class_name, type_ = model.get_register()
-            regs += pattern % (class_name, self.module_name.lower(), type_)
+            class_names.append(class_name)
+
+        regs += pattern % (', '.join(class_names), self.module_name, type_)
 
         return regs
 
