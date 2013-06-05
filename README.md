@@ -1,4 +1,4 @@
-![alt text](https://raw.github.com/joac/fugue/master/data/logo.png "Logo")
+![alt text](https://raw.github.com/joac/tryton_builder/master/data/logo.png "Logo")
 
 # Tryton Builder
 
@@ -29,6 +29,3 @@ module.build()
 ```
 
 Based on the guide of [tryton wiki](http://code.google.com/p/tryton/wiki/HelloWorld)
-
-
-
