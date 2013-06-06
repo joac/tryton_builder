@@ -13,6 +13,30 @@ from xml_utils import (
         TreeView,
         )
 
+# Define valid trytond field types
+VALID_FIELD_TYPES = [
+    'Boolean',
+    'Integer',
+    'BigInteger',
+    'Char',
+    'Sha',
+    'Text',
+    'Float',
+    'Numeric',
+    'Date',
+    'DateTime',
+    'Time',
+    'Binary',
+#    'Selection', not suported yet!
+    'Reference',
+#   'Many2One', not suported yet!
+#   'One2Many', not suported yet!
+#   'Many2Many', not suported yet!
+#   'One2One', not suported yet!
+#   'Function', not suported yet!
+]
+
+__all__ = ['Module', 'Model', 'Field']
 
 def indent(string, level=1):
     """Indents a piece of code, adding multiples of 4 spaces"""
@@ -45,7 +69,6 @@ class Module(object):
         os.mkdir(self.module_name)
 
     def create_config(self):
-        #FIXME append xml handling
         depends = 'depends:\n  %s\n' % '\n  '.join(self.depends)
         xml = 'xml:\n  %s\n' % '\n  '.join([a.get_xml_file() for a in self.models])
         with open('%s/tryton.cfg' % self.module_name, 'w') as config:
@@ -63,7 +86,6 @@ class Module(object):
 
     def _obtain_imports(self):
         """Obtain imports for all models"""
-        #FIXME build import strings here
         imports = ''
         for model in self.models:
             imports += model.get_import()
@@ -140,7 +162,6 @@ __all__ = ['${class}']
 class ${class}(ModelSQL, ModelView):
     "${module_name}"
     __name__ = "${uri}"
-    # FIXME put fields here
 ${fields}
 """)
 
@@ -233,6 +254,7 @@ class Field(object):
 
     def __init__(self, type_, name, *kwargs):
         """Parametrize a new field"""
+        assert type_ in VALID_FIELD_TYPES
         self.type = type_
         self.name = name
 
