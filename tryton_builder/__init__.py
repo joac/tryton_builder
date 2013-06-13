@@ -27,7 +27,7 @@ VALID_FIELD_TYPES = [
     'DateTime',
     'Time',
     'Binary',
-#    'Selection', not suported yet!
+    'Selection',
     'Reference',
 #   'Many2One', not suported yet!
 #   'One2Many', not suported yet!
@@ -252,19 +252,43 @@ ${fields}
 class Field(object):
     """Represents a generic field of tryton"""
 
-    def __init__(self, type_, name, *kwargs):
+    def __init__(self, type_, name, **kwargs):
         """Parametrize a new field"""
         assert type_ in VALID_FIELD_TYPES
+        if 'options' in kwargs:
+                self.options = kwargs['options']
         self.type = type_
         self.name = name
 
+    def build_options(self):
+        """Builds an options list of this form:
+            [('db_choice','show_value'), (etc...)]
+            """
+        out = '['
+        for option in self.options:
+            out += "('%s', '%s'), " % (to_pep8_variable(option), option)
+        out += ']'
+        return out
+
     def get_code(self):
         """Returns code for field"""
-        return "%s = fields.%s('%s')" % (
-                self.var_name(),
-                self.type,
-                self.name
+        if self.type == 'Selection':
+            #First Field of selection are the options
+            return "%s = fields.%s(%s, '%s')" % (
+                    self.var_name(),
+                    self.type,
+                    self.build_options(),
+                    self.name
                 )
+
+        else:
+
+            return "%s = fields.%s('%s')" % (
+                    self.var_name(),
+                    self.type,
+                    self.name
+                )
+
     def var_name(self):
         return to_pep8_variable(self.name)
 
