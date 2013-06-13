@@ -29,11 +29,14 @@ VALID_FIELD_TYPES = [
     'Binary',
     'Selection',
     'Reference',
-#   'Many2One', not suported yet!
-#   'One2Many', not suported yet!
-#   'Many2Many', not suported yet!
-#   'One2One', not suported yet!
 #   'Function', not suported yet!
+]
+
+VALID_RELATION_TYPES = [
+#   'One2One',
+   'Many2One',
+   'One2Many',
+#   'Many2Many',
 ]
 
 __all__ = ['Module', 'Model', 'Field']
@@ -291,5 +294,38 @@ class Field(object):
 
     def var_name(self):
         return to_pep8_variable(self.name)
+
+
+
+class Relation(Field):
+    """Represents a generic relation field"""
+
+    def __init__(self, type_, name, model, **kwargs):
+        """Parametrize a new field"""
+        assert type_ in VALID_RELATION_TYPES
+        self.type = type_
+        self.name = name
+        self.model = model
+        if self.type == 'One2Many':
+            self.field = kwargs['field']
+
+    def get_code(self):
+        """Returns Python Code for field"""
+
+        if self.type == 'One2Many':
+            return "%s = fields.%s('%s', '%s', '%s')" % (
+                    self.var_name(),
+                    self.type,
+                    self.model,
+                    self.name,
+                    self.field,
+                )
+        else:
+            return "%s = fields.%s('%s', '%s')" % (
+                    self.var_name(),
+                    self.type,
+                    self.model,
+                    self.name,
+                )
 
 
