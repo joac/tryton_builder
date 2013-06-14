@@ -1,7 +1,9 @@
 # -*- coding: utf8 -*-
 import os
 import shutil
+from .constants import VALID_FIELD_TYPES, VALID_RELATION_TYPES
 from string import Template
+from .utils import indent, to_pep8_variable
 from xml_utils import (
         CDATAWrapper,
         Document,
@@ -13,57 +15,28 @@ from xml_utils import (
         TreeView,
         )
 
-# Define valid trytond field types
-VALID_FIELD_TYPES = [
-    'Boolean',
-    'Integer',
-    'BigInteger',
-    'Char',
-    'Sha',
-    'Text',
-    'Float',
-    'Numeric',
-    'Date',
-    'DateTime',
-    'Time',
-    'Binary',
-    'Selection',
-    'Reference',
-#   'Function', not suported yet!
-]
-
-VALID_RELATION_TYPES = [
-#   'One2One',
-   'Many2One',
-   'One2Many',
-#   'Many2Many',
-]
 
 __all__ = ['Module', 'Model', 'Field']
 
-def indent(string, level=1):
-    """Indents a piece of code, adding multiples of 4 spaces"""
-    spaces = ' ' * (level * 4)
-    return "%s%s" % (spaces, string)
-
-
-def to_pep8_variable(string):
-    """Format a string as a correct pep8 name"""
-    return string.replace(' ', '_').replace('-', '_').lower()
-
 
 class Module(object):
+    """Represents a Module of tryton"""
 
     def __init__(self, module_name, version='2.8.0'):
 
         self.module_name = module_name
         self.models = []
         self.version = version
-        self.depends = ['ir']
+        self.depends = set(['ir'])
 
     def add_model(self, model):
+        """Adds a model to the module"""
         self.models.append(model)
         return self
+
+    def add_dependence(self, dep):
+        """Adds a dependence to the module, added to tryton.cfg"""
+        self.depends.add(dep)
 
     def create_dir(self):
         """Creates module directory"""
