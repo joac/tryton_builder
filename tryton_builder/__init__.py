@@ -317,8 +317,8 @@ class Relation(Field):
                     self.var_name(),
                     self.type,
                     self.model,
+                    to_pep8_variable(self.field),
                     self.name,
-                    self.field,
                 )
         else:
             return "%s = fields.%s('%s', '%s')" % (
