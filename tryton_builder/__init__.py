@@ -63,6 +63,7 @@ class Module(object):
 
     def add_model(self, model):
         self.models.append(model)
+        return self
 
     def create_dir(self):
         """Creates module directory"""
@@ -220,6 +221,7 @@ ${fields}
 
     def add_field(self, field):
         self.fields.append(field)
+        return self
 
     def _build_form_skel(self, view_type):
         form_id = '%s_view_%s' % (self.class_name.lower(), view_type)
