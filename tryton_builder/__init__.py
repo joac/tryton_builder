@@ -15,15 +15,12 @@ from xml_utils import (
         TreeView,
         )
 
-
 __all__ = ['Module', 'Model', 'Field']
-
 
 class Module(object):
     """Represents a Module of tryton"""
 
     def __init__(self, module_name, version='2.8.0'):
-
         self.module_name = module_name
         self.models = []
         self.version = version
@@ -47,7 +44,7 @@ class Module(object):
 
     def create_config(self):
         depends = 'depends:\n  %s\n' % '\n  '.join(self.depends)
-        xml = 'xml:\n  %s\n' % '\n  '.join([a.get_xml_file() for a in self.models])
+        xml = 'xml:\n  %s\n' % '\n  '.join([a.get_xml_file() for a in self.models if a.get_xml_file()])
         with open('%s/tryton.cfg' % self.module_name, 'w') as config:
             config.write('[tryton]\nversion=%s\n' % self.version)
             config.write(depends)
@@ -227,6 +224,8 @@ ${fields}
         return r
 
 
+
+
 class Field(object):
     """Represents a generic field of tryton"""
 
@@ -270,6 +269,14 @@ class Field(object):
     def var_name(self):
         return to_pep8_variable(self.name)
 
+class HeadlessModel(Model):
+    """Define an invisible (Without views) model"""
+
+    def get_xml_file(self):
+        pass # We don't need xml
+
+    def build_class(self):
+        pass # We don't need xml
 
 
 class Relation(Field):
