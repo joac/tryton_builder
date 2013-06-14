@@ -47,7 +47,7 @@ class Module(object):
 
         model_b.add_field(Relation(
                     'Many2Many',
-                    model_b.class_name,
+                    model_a.class_name,
                     model.uri,
                     origin=to_pep8_variable(model_b.class_name),
                     target=to_pep8_variable(model_a.class_name),
