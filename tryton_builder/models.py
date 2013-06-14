@@ -37,10 +37,8 @@ class Model(object):
         """Returns file name of xml"""
         return "%s.xml" % self.class_name.lower()
 
-    def build_class(self, module_name):
-        """Return code of the object"""
-        template = Template(
-"""#! -*- coding: utf8 -*-
+    def _get_class_template(self):
+        return """#! -*- coding: utf8 -*-
 from trytond.model import ModelView, ModelSQL, fields
 
 __all__ = ['${class}']
@@ -49,8 +47,11 @@ class ${class}(ModelSQL, ModelView):
     "${module_name}"
     __name__ = "${uri}"
 ${fields}
-""")
+"""
 
+    def build_class(self, module_name):
+        """Return code of the object"""
+        template = Template(self._get_class_template())
         contents = template.substitute({
             'class': self.class_name,
             'module_name': module_name,
@@ -138,10 +139,20 @@ ${fields}
 
 class HeadlessModel(Model):
     """Define an invisible (Without views) model"""
+    def _get_class_template(self):
+        return """#! -*- coding: utf8 -*-
+from trytond.model import ModelView, ModelSQL, fields
+
+__all__ = ['${class}']
+
+class ${class}(ModelSQL):
+    "${module_name}"
+    __name__ = "${uri}"
+${fields}
+"""
 
     def get_xml_file(self):
         pass # We don't need xml
 
-    def build_class(self):
+    def build_xml(self, *args, **kwargs):
         pass # We don't need xml
-

@@ -3,7 +3,7 @@ import os
 import shutil
 from .constants import VALID_FIELD_TYPES, VALID_RELATION_TYPES
 from .utils import to_pep8_variable
-from .models import Model
+from .models import Model, HeadlessModel
 
 __all__ = ['Module', 'Model', 'Field']
 
@@ -24,6 +24,36 @@ class Module(object):
     def add_dependence(self, dep):
         """Adds a dependence to the module, added to tryton.cfg"""
         self.depends.add(dep)
+
+    def many2many(self, model_a, model_b):
+        """Creates a many to many relation, tryton needs a"""
+        # Create the intermediate models
+        intermediate_name = "%s%s" % (model_a.class_name, model_b.class_name);
+        prefix = model_a.uri.split('.')[0]
+        model_uri = "%s.%s-%s" %(prefix, to_pep8_variable(model_a.class_name), to_pep8_variable(model_b.class_name))
+        model = HeadlessModel(intermediate_name, model_uri)
+
+        model.add_field(Relation('Many2One', model_a.class_name, model_a.uri))
+        model.add_field(Relation('Many2One', model_b.class_name, model_b.uri))
+        self.add_model(model)
+        model_a.add_field(Relation(
+                    'Many2Many',
+                    model_b.class_name,
+                    model.uri,
+                    origin=to_pep8_variable(model_a.class_name),
+                    target=to_pep8_variable(model_b.class_name),
+                    )
+                )
+
+        model_b.add_field(Relation(
+                    'Many2Many',
+                    model_b.class_name,
+                    model.uri,
+                    origin=to_pep8_variable(model_b.class_name),
+                    target=to_pep8_variable(model_a.class_name),
+                    )
+                )
+
 
     def create_dir(self):
         """Creates module directory"""
@@ -144,6 +174,9 @@ class Relation(Field):
         self.model = model
         if self.type == 'One2Many':
             self.field = kwargs['field']
+        if self.type == 'Many2Many':
+            self.origin = kwargs['origin']
+            self.target = kwargs['target']
 
     def get_code(self):
         """Returns Python Code for field"""
@@ -154,6 +187,15 @@ class Relation(Field):
                     self.type,
                     self.model,
                     to_pep8_variable(self.field),
+                    self.name,
+                )
+        elif self.type == 'Many2Many':
+            return "%s = fields.%s('%s', '%s', '%s', '%s')" % (
+                    self.var_name(),
+                    self.type,
+                    self.model,
+                    self.origin,
+                    self.target,
                     self.name,
                 )
         else:

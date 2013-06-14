@@ -22,6 +22,6 @@ VALID_RELATION_TYPES = [
 #   'One2One',
    'Many2One',
    'One2Many',
-#   'Many2Many',
+   'Many2Many',
 ]
 
