@@ -26,6 +26,6 @@ module.build()
 # Our module is placed on HelloWorld dir
 ```
 
-For an extended example, look `[example.py](https://github.com/joac/tryton_builder/blob/master/example.py)`
+For an extended example, look [example.py](https://github.com/joac/tryton_builder/blob/master/example.py)
 
 Based on the guide of [tryton wiki](http://code.google.com/p/tryton/wiki/HelloWorld)
